@@ -10,9 +10,7 @@ Let's recover the private-key for two signatures sharing the same `nonce k` (sel
 * **sampleA** (**r**, *sA, hashA*, pubkey, curve)
 * **sampleB** (**r**, *sB, hashB*, pubkey, curve).
 
-
-The library is written in a way that it tries to upgrade `pubkey only ecdsa objects` to `private key enabled ecdsa objects` upon successful recovery. This makes it easy to work with recovered key objects. The library performs both **ECDSA** and **DSA** key recovery.
-
+create recoverable signature objects:
 ```python
 from ecdsa_key_recovery import DsaSignature, EcDsaSignature
 
@@ -41,15 +39,19 @@ sampleB = EcDsaSignature((379130099915950348967791836193116186659457539634752408
                          
 # key not yet recovered
 assert (sampleA.x is None)              # privatekey is not available, attempt to recover it
-logger.debug("%r - recovering private-key from nonce reuse ..." % sampleA)
+```
 
+recover the private key for **sampleA**
+```python
 # attempt to recover key - this updated object sampleA
+logger.debug("%r - recovering private-key from nonce reuse ..." % sampleA)
 sampleA.recover_nonce_reuse(sampleB)    # recover privatekey shared with sampleB
 assert (sampleA.x is not None)          # assert privkey recovery succeeded. This gives us a ready to use ECDSA privkey object
 assert sampleA.privkey
 logger.debug("%r - Private key recovered! \n%s" % (sampleA, sampleA.export_key()))
 ```
 
+#### output
 ```
 INFO:__main__:------------EcDSA------------
 DEBUG:__main__:<EcDsaSignature 0x2c7a61 sig=(3791300999…,4927812489…) public=✔ private=⨯ > - recovering private-key from nonce reuse ...
@@ -97,3 +99,5 @@ Kb2Hq4AUoJWTCT0ijX+oQJafbywjdwQXAhUAniK/kyRv/SFd1uJjuDMh0EntMws=
 -----END PRIVATE KEY-----
 
 ```
+
+The library is written in a way that it tries to upgrade `pubkey only ecdsa objects` to `private key enabled ecdsa objects` upon successful recovery. This makes it easy to work with recovered key objects. The library performs both **ECDSA** and **DSA** key recovery.
