@@ -1,21 +1,30 @@
 # ecdsa-key-recovery
 A simple library to perform ECDSA and DSA Nonce Reuse private key recovery attacks
 
-This is kind of an improved version of https://github.com/tintinweb/DSAregenK
+###### This is kind of an improved version of the DSA only variant from https://github.com/tintinweb/DSAregenK
 
 
 ### Example
 
-recover private-key from two signatures *sampleA (r,sA,hashA,pubkey,curve)* and *sampleB (r,sB,hashB,pubkey,curve)*.
-* Note that you can feed in standard python `ecdsa` signature objects. Once recovered you'll receive private-key capable `ecdsa` objects.
-* Note that this also works with DSA signatures.
+Let's recover the private-key for two signatures sharing the same `nonce k` (selected when generating the signature). Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`.
+* **sampleA** (**r**, *sA, hashA*, pubkey, curve)
+* **sampleB** (**r**, *sB, hashB*, pubkey, curve).
+
+
+The library is written in a way that it tries to upgrade `pubkey only ecdsa objects` to `private key enabled ecdsa objects` upon successful recovery. This makes it easy to work with recovered key objects. The library performs both **ECDSA** and **DSA** key recovery.
 
 ```python
+from ecdsa_key_recovery import DsaSignature, EcDsaSignature
+
+# specify curve
 curve = ecdsa.SECP256k1
+
+# create standard ecdsa pubkey object from hex-encoded string
 pub = ecdsa.VerifyingKey.from_string(
         "a50eb66887d03fe186b608f477d99bc7631c56e64bb3af7dc97e71b917c5b3647954da3444d33b8d1f90a0d7168b2f158a2c96db46733286619fccaafbaca6bc".decode(
             "hex"), curve=curve).pubkey
-
+            
+# create sampleA and sampleB recoverable signature objects.
 # long r, long s, bytestr hash, pubkey obj.
 sampleA = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,   #r
                           49278124892733989732191499899232294894006923837369646645433456321810805698952), #s
@@ -29,9 +38,12 @@ sampleB = EcDsaSignature((379130099915950348967791836193116186659457539634752408
                              23350593486085962838556474743103510803442242293209938584974526279226240784097).decode(
                              "hex"),
                          pub)
-
+                         
+# key not yet recovered
 assert (sampleA.x is None)              # privatekey is not available, attempt to recover it
 logger.debug("%r - recovering private-key from nonce reuse ..." % sampleA)
+
+# attempt to recover key - this updated object sampleA
 sampleA.recover_nonce_reuse(sampleB)    # recover privatekey shared with sampleB
 assert (sampleA.x is not None)          # assert privkey recovery succeeded. This gives us a ready to use ECDSA privkey object
 assert sampleA.privkey
