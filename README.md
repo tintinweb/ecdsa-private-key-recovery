@@ -3,14 +3,22 @@ A simple library to perform ECDSA and DSA Nonce Reuse private key recovery attac
 
 This is kind of an improved version of https://github.com/tintinweb/DSAregenK
 
+
+### Example
+
+recover private-key from two signatures *sampleA (r,sA,hashA,pubkey,curve)* and *sampleB (r,sB,hashB,pubkey,curve)*.
+* Note that you can feed in standard python `ecdsa` signature objects. Once recovered you'll receive private-key capable `ecdsa` objects.
+* Note that this also works with DSA signatures.
+
 ```python
+curve = ecdsa.SECP256k1
 pub = ecdsa.VerifyingKey.from_string(
         "a50eb66887d03fe186b608f477d99bc7631c56e64bb3af7dc97e71b917c5b3647954da3444d33b8d1f90a0d7168b2f158a2c96db46733286619fccaafbaca6bc".decode(
             "hex"), curve=curve).pubkey
-# static testcase
+
 # long r, long s, bytestr hash, pubkey obj.
-sampleA = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,
-                          49278124892733989732191499899232294894006923837369646645433456321810805698952),
+sampleA = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,   #r
+                          49278124892733989732191499899232294894006923837369646645433456321810805698952), #s
                          bignum_to_hex(
                              765305792208265383632692154455217324493836948492122104105982244897804317926).decode(
                              "hex"),
@@ -30,7 +38,7 @@ assert sampleA.privkey
 logger.debug("%r - Private key recovered! \n%s" % (sampleA, sampleA.export_key()))
 ```
 
-```python
+```
 INFO:__main__:------------EcDSA------------
 DEBUG:__main__:<EcDsaSignature 0x2c7a61 sig=(3791300999…,4927812489…) public=✔ private=⨯ > - recovering private-key from nonce reuse ...
 DEBUG:__main__:<EcDsaSignature 0x2c7a61 sig=(3791300999…,4927812489…) public=✔ private=✔ > - Private key recovered!
