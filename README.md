@@ -1,14 +1,24 @@
 # ecdsa-key-recovery
-A simple library to perform ECDSA and DSA Nonce Reuse private key recovery attacks
+Pperform ECDSA and DSA Nonce Reuse private key recovery attacks
 
 ###### This is kind of an improved version of the DSA only variant from https://github.com/tintinweb/DSAregenK
 
 
-### Example
+Let's recover the private-key for two signatures sharing the same `nonce k`. Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`.
 
-Let's recover the private-key for two signatures sharing the same `nonce k` (selected when generating the signature). Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`.
 * **sampleA** (**r**, *sA, hashA*, pubkey, curve)
-* **sampleB** (**r**, *sB, hashB*, pubkey, curve).
+* **sampleB** (**r**, *sB, hashB*, pubkey, curve)
+
+```python
+sampleA = EcDsaSignature(r, sA, hashA, pubkey, curve)
+sampleB = EcDsaSignature(r, sB, hashB, pubkey, curve) # same privkey as sampleA, identical r due to nonce reuse k.
+
+# recover the private key
+sampleA.recover_nonce_reuse(sampleB) # populates sampleA with the recovered private key ready for use
+print sampleA.privkey
+```
+
+### Example
 
 create recoverable signature objects:
 ```python
