@@ -18,7 +18,9 @@ sampleA.recover_nonce_reuse(sampleB)  # populates sampleA with the recovered pri
 print sampleA.privkey 
 ```
 
-#### Some ECDSA Private Keys recovered from the Bitcoin Blockchain
+#### Recovering Private Keys from the Bitcoin Blockchain
+
+[tools/README.md](tools/README.md)
 
 
 
