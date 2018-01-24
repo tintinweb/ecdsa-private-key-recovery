@@ -218,8 +218,9 @@ class BTCSignature(EcDsaSignature):
         return p
 
     def recover_from_btcsig(self, btcsig):
-        print self.pubkey_orig==btcsig.pubkey_orig
-        return self.recover_nonce(btcsig.sig, btcsig.h)
+        return self.recover_nonce_reuse(btcsig)
+        #print self.pubkey_orig==btcsig.pubkey_orig
+        #return self.recover_nonce(btcsig.sig, btcsig.h)
 
     def to_btc_pubkey(self):
         return ('\04' + self.signingkey.verifying_key.to_string()).encode('hex')
