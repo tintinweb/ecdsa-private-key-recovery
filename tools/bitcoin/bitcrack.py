@@ -709,7 +709,7 @@ def import_csv_to_mysql(csv_in):
     sigs = []
 
     t_read_diff = time.time()
-    for sig in get_sigpair_from_csv(path_tx_in=csv_in,
+    for sig in get_sigpair_from_csv(csv_in=csv_in,
                                     start=0,
                                     #skip_to_tx='a27268516da6f91599a99c7ee9ac66fac4da75f70da3421d8d4eec46767b8234',
                                     ):
