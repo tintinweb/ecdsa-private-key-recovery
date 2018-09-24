@@ -18,6 +18,15 @@ sampleA.recover_nonce_reuse(sampleB)  # populates sampleA with the recovered pri
 print sampleA.privkey 
 ```
 
+#### setup
+
+```
+#> virtualenv -p python2.7 .env27
+#> . .env27/bin/activate
+(.env27) #> python setup.py install
+(.env27) #> python tests/test_ecdsa_key_recovery.py
+```
+
 #### Recovering Private Keys from the Bitcoin Blockchain
 
 [tools/README.md](tools/README.md)
