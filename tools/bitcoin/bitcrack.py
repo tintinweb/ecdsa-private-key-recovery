@@ -729,7 +729,6 @@ def import_csv_to_mysql(csv_in):
         db.insert_batch_scriptSig(sigs)
         db.commit()
     db.close()
-    logger.warning(sig['nr'])
 
 if __name__=="__main__":
     logging.basicConfig(loglevel=logging.DEBUG, format="%(funcName)-20s -  %(message)s")
