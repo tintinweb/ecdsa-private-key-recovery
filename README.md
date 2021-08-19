@@ -1,10 +1,10 @@
 # ecdsa-key-recovery
-Pperform ECDSA and DSA Nonce Reuse private key recovery attacks
+Perform ECDSA and DSA Nonce Reuse private key recovery attacks
 
 ###### This is kind of an improved version of the DSA only variant from https://github.com/tintinweb/DSAregenK
 
 
-Let's recover the private-key for two signatures sharing the same `nonce k`. Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`. To find good candidates for an ECDSA nonce reuse check for signatures sharing the same `r`, `pubkey` on `curve` for different messages (or hashes). E.g. blockchain projects based off `bitcoind` are usually good sources of ECDSA signature material.
+Let's recover the private-key for two signatures sharing the same `nonce k`. Note how choosing the same `nonce k` results in both signatures having an identical signature value `r`. To find good candidates for an ECDSA nonce reuse check for signatures sharing the same `r`, `pubkey` on `curve` for different messages (or hashes). E.g. blockchain projects based off `bitcoind` are usually good sources of ECDSA signature material.
 
 * **sampleA** (**r**, *sA, hashA*, pubkey, curve)
 * **sampleB** (**r**, *sB, hashB*, pubkey, curve)
