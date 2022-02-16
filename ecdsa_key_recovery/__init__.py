@@ -19,6 +19,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# py2to3 compat
+import six  #py2to3 compat
+import sys
+IS_PY2 = sys.version_info[0] == 2
+
+def bytes_fromhex(str):
+    if IS_PY2:
+        return str.decode("hex")
+    return bytes.fromhex(str)
+
+
+def bignum_to_hex(val, nbits=256):
+    ret = hex((val + (1 << nbits)) % (1 << nbits)).rstrip("L").lstrip("0x")
+    if len(ret) % 2 == 1:
+        # even out hexstr
+        return "0" + ret
+    return ret
 
 # noinspection PyProtectedMember,PyProtectedMember,PyProtectedMember,PyProtectedMember,PyProtectedMember
 def to_dsakey(secret_key, _from=Crypto.PublicKey.DSA, _to=Cryptodome.PublicKey.DSA):
@@ -90,25 +107,25 @@ class RecoverableSignature(object):
                                                            "✔" if self.x else '⨯')
 
     def _load_signature(self, sig):
-        if all(hasattr(sig, att) for att in ('r','s')):
+        if all(hasattr(sig, att) for att in ('r', 's')):
             return sig
         elif isinstance(sig, tuple):
             return SignatureParameter(*sig)
 
-        raise ValueError("Invalid Signature Format! - Expected tuple(long r,long s) or SignatureParamter(long r, long s)")
+        raise ValueError(
+            "Invalid Signature Format! - Expected tuple(long r,long s) or SignatureParamter(long r, long s)")
 
     def _load_hash(self, h):
-        if isinstance(h, (int, long)):
+        if isinstance(h, six.integer_types):
             return h
-        elif isinstance(h, basestring):
+        elif isinstance(h, (six.string_types, six.binary_type)):
             return Crypto.Util.number.bytes_to_long(h)
 
-        raise ValueError("Invalid Hash Format! - Expected long(hash) or str(hash)")
+        raise ValueError(
+            "Invalid Hash Format! - Expected long(hash) or str(hash)")
 
     def _load_pubkey(self, pubkey):
         raise NotImplementedError("Must be implemented by subclass")
-
-
 
     def recover_nonce_reuse(self, other):
         """
@@ -117,13 +134,16 @@ class RecoverableSignature(object):
         :param other: other object of same type
         :return: self
         """
-        raise NotImplementedError("%s cannot be called directly" % self.__class__.__name__)
+        raise NotImplementedError(
+            "%s cannot be called directly" % self.__class__.__name__)
 
     def export_key(self, *args, **kwargs):
-        raise NotImplementedError("%s cannot be called directly" % self.__class__.__name__)
+        raise NotImplementedError(
+            "%s cannot be called directly" % self.__class__.__name__)
 
     def import_key(self, *args, **kwargs):
-        raise NotImplementedError("%s cannot be called directly" % self.__class__.__name__)
+        raise NotImplementedError(
+            "%s cannot be called directly" % self.__class__.__name__)
 
 
 class DsaSignature(RecoverableSignature):
@@ -134,7 +154,8 @@ class DsaSignature(RecoverableSignature):
     def __init__(self, sig, h, pubkey):
         super(DsaSignature, self).__init__(sig, h, pubkey)
         logger.debug("%r - check verifies.." % self)
-        assert self.pubkey.verify(self.h, self.sig.tuple)  # check sig verifies hash
+        # check sig verifies hash
+        assert self.pubkey.verify(self.h, self.sig.tuple)
         logger.debug("%r - Signature is ok" % self)
 
     def _load_pubkey(self, pubkey):
@@ -166,8 +187,10 @@ class DsaSignature(RecoverableSignature):
     def recover_nonce_reuse(self, other):
         assert (self.pubkey.q == other.pubkey.q)
         assert (self.sig.r == other.sig.r)  # reused *k* implies same *r*
-        self.k = (self.h - other.h) * inverse(self.sig.s - other.sig.s, self.pubkey.q) % self.pubkey.q
-        self.x = ((self.k * self.sig.s - self.h) * inverse(self.sig.r, self.pubkey.q)) % self.pubkey.q
+        self.k = (self.h - other.h) * inverse(self.sig.s -
+                                              other.sig.s, self.pubkey.q) % self.pubkey.q
+        self.x = ((self.k * self.sig.s - self.h) *
+                  inverse(self.sig.r, self.pubkey.q)) % self.pubkey.q
         # other.k, other.x = self.k, self.x   # update other object as well?
         return self
 
@@ -189,7 +212,7 @@ class EcDsaSignature(RecoverableSignature):
     def _load_pubkey(self, pubkey):
         if isinstance(pubkey, ecdsa.ecdsa.Public_key):
             return pubkey
-        elif isinstance(pubkey, basestring):
+        elif isinstance(pubkey, (six.string_types, six.binary_type)):
             return ecdsa.VerifyingKey.from_string(pubkey, curve=self.curve).pubkey
         return pubkey
 

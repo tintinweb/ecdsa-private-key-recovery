@@ -1,10 +1,10 @@
 # ecdsa-key-recovery
-Pperform ECDSA and DSA Nonce Reuse private key recovery attacks
+Perform ECDSA and DSA Nonce Reuse private key recovery attacks
 
 ###### This is kind of an improved version of the DSA only variant from https://github.com/tintinweb/DSAregenK
 
 
-Let's recover the private-key for two signatures sharing the same `nonce k`. Note how chosing the same `nonce k` results in both signatures having an identical signature value `r`. To find good candidates for an ECDSA nonce reuse check for signatures sharing the same `r`, `pubkey` on `curve` for different messages (or hashes). E.g. blockchain projects based off `bitcoind` are usually good sources of ECDSA signature material.
+Let's recover the private-key for two signatures sharing the same `nonce k`. Note how choosing the same `nonce k` results in both signatures having an identical signature value `r`. To find good candidates for an ECDSA nonce reuse check for signatures sharing the same `r`, `pubkey` on `curve` for different messages (or hashes). E.g. blockchain projects based off `bitcoind` are usually good sources of ECDSA signature material.
 
 * **sampleA** (**r**, *sA, hashA*, pubkey, curve)
 * **sampleB** (**r**, *sB, hashB*, pubkey, curve)
@@ -20,11 +20,24 @@ print sampleA.privkey
 
 #### setup
 
+Python 2.x:
+
 ```
 #> virtualenv -p python2.7 .env27
 #> . .env27/bin/activate
+(.env27) #> python -m pip install -r requirements.txt
 (.env27) #> python setup.py install
 (.env27) #> python tests/test_ecdsa_key_recovery.py
+```
+
+Python 3.x:
+
+```
+#> virtualenv -p python3 .env3
+#> . .env3/bin/activate
+(.env3) #> python -m pip install -r requirements.txt
+(.env3) #> python setup.py install
+(.env3) #> python tests/test_ecdsa_key_recovery.py
 ```
 
 #### Recovering Private Keys from the Bitcoin Blockchain
@@ -44,29 +57,26 @@ print sampleA.privkey
 
 create recoverable signature objects:
 ```python
-from ecdsa_key_recovery import DsaSignature, EcDsaSignature
+from ecdsa_key_recovery import DsaSignature, EcDsaSignature, ecdsa, bignum_to_hex, bytes_fromhex
 
 # specify curve
 curve = ecdsa.SECP256k1
 
 # create standard ecdsa pubkey object from hex-encoded string
 pub = ecdsa.VerifyingKey.from_string(
-        "a50eb66887d03fe186b608f477d99bc7631c56e64bb3af7dc97e71b917c5b3647954da3444d33b8d1f90a0d7168b2f158a2c96db46733286619fccaafbaca6bc".decode(
-            "hex"), curve=curve).pubkey
+        bytes_fromhex("a50eb66887d03fe186b608f477d99bc7631c56e64bb3af7dc97e71b917c5b3647954da3444d33b8d1f90a0d7168b2f158a2c96db46733286619fccaafbaca6bc"), curve=curve).pubkey
             
 # create sampleA and sampleB recoverable signature objects.
 # long r, long s, bytestr hash, pubkey obj.
 sampleA = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,   #r
                           49278124892733989732191499899232294894006923837369646645433456321810805698952), #s
-                         bignum_to_hex(
-                             765305792208265383632692154455217324493836948492122104105982244897804317926).decode(
-                             "hex"),
+                         bytes_fromhex(bignum_to_hex(
+                             765305792208265383632692154455217324493836948492122104105982244897804317926)),
                          pub)
 sampleB = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,   #r
                           34219161137924321997544914393542829576622483871868414202725846673961120333282), #s'
-                         bignum_to_hex(
-                             23350593486085962838556474743103510803442242293209938584974526279226240784097).decode(
-                             "hex"),
+                         bytes_fromhex(bignum_to_hex(
+                             23350593486085962838556474743103510803442242293209938584974526279226240784097)),
                          pub)
                          
 # key not yet recovered

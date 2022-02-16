@@ -6,21 +6,15 @@ from Crypto.Random import random
 from Crypto.Hash import SHA
 from Crypto.PublicKey import DSA
 
-from ecdsa_key_recovery import DsaSignature, EcDsaSignature
+from ecdsa_key_recovery import DsaSignature, EcDsaSignature, ecdsa, bignum_to_hex, bytes_fromhex
 
-import ecdsa
+import time
+if not hasattr(time, "clock"):
+    time.clock = time.perf_counter  # py2to3 compat. fix PyCrypto bug in py3
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-def bignum_to_hex(val, nbits=256):
-    ret = hex((val + (1 << nbits)) % (1 << nbits)).rstrip("L").lstrip("0x")
-    if len(ret) % 2 == 1:
-        # even out hexstr
-        return "0" + ret
-    return ret
 
 
 # noinspection PyClassHasNoInit
@@ -42,21 +36,18 @@ oNcWiy8ViiyW20ZzMoZhn8yq+6ymvA==
             if not pub:
                 # default
                 pub = ecdsa.VerifyingKey.from_string(
-                    "a50eb66887d03fe186b608f477d99bc7631c56e64bb3af7dc97e71b917c5b3647954da3444d33b8d1f90a0d7168b2f158a2c96db46733286619fccaafbaca6bc".decode(
-                        "hex"), curve=curve).pubkey
+                    bytes_fromhex("a50eb66887d03fe186b608f477d99bc7631c56e64bb3af7dc97e71b917c5b3647954da3444d33b8d1f90a0d7168b2f158a2c96db46733286619fccaafbaca6bc"), curve=curve).pubkey
             # static testcase
             # long r, long s, bytestr hash, pubkey obj.
             sampleA = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,
                                       49278124892733989732191499899232294894006923837369646645433456321810805698952),
-                                     bignum_to_hex(
-                                         765305792208265383632692154455217324493836948492122104105982244897804317926).decode(
-                                         "hex"),
+                                     bytes_fromhex(bignum_to_hex(
+                                         765305792208265383632692154455217324493836948492122104105982244897804317926)),
                                      pub)
             sampleB = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,
                                       34219161137924321997544914393542829576622483871868414202725846673961120333282),
-                                     bignum_to_hex(
-                                         23350593486085962838556474743103510803442242293209938584974526279226240784097).decode(
-                                         "hex"),
+                                     bytes_fromhex(bignum_to_hex(
+                                         23350593486085962838556474743103510803442242293209938584974526279226240784097)),
                                      pub)
 
             assert (sampleA.x is None)  # not yet resolved
@@ -104,8 +95,8 @@ oNcWiy8ViiyW20ZzMoZhn8yq+6ymvA==
             # choose a "random" - k :)  this time random is static in order to allow this attack to work
             k = random.StrongRandom().randint(1, secret_key.q - 1)
             # sign two messages using the same k
-            samples = (Tests.Dsa.signMessage(secret_key, "This is a signed message!", k),
-                       Tests.Dsa.signMessage(secret_key, "Another signed Message -  :)", k))
+            samples = (Tests.Dsa.signMessage(secret_key, "This is a signed message!".encode("utf-8"), k),
+                       Tests.Dsa.signMessage(secret_key, "Another signed Message -  :)".encode("utf-8"), k))
             logger.debug("generated sample signatures: %s" % repr(samples))
             signatures = [DsaSignature(sig, h, pubkey) for h, sig, pubkey in samples]
             logger.debug("Signature Objects: %r" % signatures)
@@ -125,7 +116,7 @@ oNcWiy8ViiyW20ZzMoZhn8yq+6ymvA==
 
 
 if __name__ == "__main__":
-    logging.basicConfig(loglevel=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     logger.setLevel(logging.DEBUG)
     logging.getLogger("ecdsa_dsa_crack").setLevel(logging.DEBUG)
     logger.info("------------EcDSA------------")
