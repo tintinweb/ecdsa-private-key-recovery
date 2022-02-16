@@ -20,11 +20,24 @@ print sampleA.privkey
 
 #### setup
 
+Python 2.x:
+
 ```
 #> virtualenv -p python2.7 .env27
 #> . .env27/bin/activate
+(.env27) #> python -m pip install -r requirements.txt
 (.env27) #> python setup.py install
 (.env27) #> python tests/test_ecdsa_key_recovery.py
+```
+
+Python 3.x:
+
+```
+#> virtualenv -p python3 .env3
+#> . .env3/bin/activate
+(.env3) #> python -m pip install -r requirements.txt
+(.env3) #> python setup.py install
+(.env3) #> python tests/test_ecdsa_key_recovery.py
 ```
 
 #### Recovering Private Keys from the Bitcoin Blockchain
