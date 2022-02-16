@@ -9,7 +9,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-version = "0.1.0"
+version = "0.1.1"
 
 setup(
     name="ecdsa-private-key-recovery",
@@ -22,8 +22,8 @@ setup(
     license="GPLv2",
     keywords=["ecdsa", "dsa", "recovery", "nonce", "blockchain"],
     url="https://github.com/tintinweb/ecdsa-private-key-recovery",
-    download_url="https://github.com/tintinweb/ecdsa-private-key-recovery/tarball/v%s"%version,
-    #python setup.py register -r https://testpypi.python.org/pypi
+    download_url="https://github.com/tintinweb/ecdsa-private-key-recovery/tarball/v%s" % version,
+    # python setup.py register -r https://testpypi.python.org/pypi
     long_description=read("README.md") if os.path.isfile("README.md") else "",
     long_description_type='text/markdown',
     install_requires=["pycryptodomex",

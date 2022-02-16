@@ -6,21 +6,11 @@ from Crypto.Random import random
 from Crypto.Hash import SHA
 from Crypto.PublicKey import DSA
 
-from ecdsa_key_recovery import DsaSignature, EcDsaSignature
-
-import ecdsa
+from ecdsa_key_recovery import DsaSignature, EcDsaSignature, ecdsa, bignum_to_hex, bytes_fromhex
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-def bignum_to_hex(val, nbits=256):
-    ret = hex((val + (1 << nbits)) % (1 << nbits)).rstrip("L").lstrip("0x")
-    if len(ret) % 2 == 1:
-        # even out hexstr
-        return "0" + ret
-    return ret
 
 
 # noinspection PyClassHasNoInit
@@ -48,15 +38,13 @@ oNcWiy8ViiyW20ZzMoZhn8yq+6ymvA==
             # long r, long s, bytestr hash, pubkey obj.
             sampleA = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,
                                       49278124892733989732191499899232294894006923837369646645433456321810805698952),
-                                     bignum_to_hex(
-                                         765305792208265383632692154455217324493836948492122104105982244897804317926).decode(
-                                         "hex"),
+                                     bytes_fromhex(bignum_to_hex(
+                                         765305792208265383632692154455217324493836948492122104105982244897804317926)),
                                      pub)
             sampleB = EcDsaSignature((3791300999159503489677918361931161866594575396347524089635269728181147153565,
                                       34219161137924321997544914393542829576622483871868414202725846673961120333282),
-                                     bignum_to_hex(
-                                         23350593486085962838556474743103510803442242293209938584974526279226240784097).decode(
-                                         "hex"),
+                                     bytes_fromhex(bignum_to_hex(
+                                         23350593486085962838556474743103510803442242293209938584974526279226240784097)),
                                      pub)
 
             assert (sampleA.x is None)  # not yet resolved
